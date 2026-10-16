@@ -1,0 +1,55 @@
+name: Train models
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: train-models
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::Не заданы секреты SUPABASE_URL / SUPABASE_SERVICE_KEY (Settings -> Secrets and variables -> Actions)"
+            exit 1
+          fi
+
+      - name: Train XGBoost models and upload to Supabase Storage
+        run: python -m ml.train
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TWELVE_KEY: ${{ secrets.TWELVE_KEY }}
+          TRAIN_BARS_FAST: ${{ vars.TRAIN_BARS_FAST || '20000' }}
+          TRAIN_BARS_SLOW: ${{ vars.TRAIN_BARS_SLOW || '12000' }}
+          TRAIN_TD_MAX: ${{ vars.TRAIN_TD_MAX || '30' }}
+          TRAIN_GROUPS: ${{ vars.TRAIN_GROUPS || 'crypto,fx,other' }}
