@@ -1,0 +1,41 @@
+# ===== Секреты (никогда не коммитить) =====
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+secrets/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Модели и данные не хранятся в репозитории (они живут в Supabase Storage)
+*.pkl
+*.joblib
+*.parquet
+*.csv
+*.ubj
+models/
+
+# ===== Node / Next.js =====
+node_modules/
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== Логи и мусор ОС/редакторов =====
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
